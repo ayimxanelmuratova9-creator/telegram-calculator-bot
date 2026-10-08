@@ -4,8 +4,9 @@ from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiohttp import web  # Render uchun veb-server
+
 BOT_TOKEN="8629111423:AAEwN-upf3PHsOql_-obq_3L4jOeI8gaYhA"
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = BOT_TOKEN
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
@@ -28,7 +29,7 @@ def get_calc_keyboard():
 @dp.message(Command("start"))
 async def start_cmd(message: types.Message):
     user_data[message.from_user.id] = ""
-    await message.answer("Kalkulyatordan foydalaning:", reply_markup=get_calc_keyboard())
+    await message.answer("Kalkulyatordan paydalanin':", reply_markup=get_calc_keyboard())
 
 @dp.callback_query(F.data.startswith("num_"))
 async def calc_callback(call: types.CallbackQuery):
@@ -44,9 +45,9 @@ async def calc_callback(call: types.CallbackQuery):
             clean_expr = current_expr.replace("×", "*").replace("÷", "/")
             current_expr = str(eval(clean_expr)) if clean_expr else "0"
         except Exception:
-            current_expr = "Xatolik"
+            current_expr = "qa'telik"
     else:
-        if current_expr == "Xatolik":
+        if current_expr == "qa'telik":
             current_expr = ""
         current_expr += val
         
@@ -54,7 +55,7 @@ async def calc_callback(call: types.CallbackQuery):
     display_text = current_expr if current_expr else "0"
     
     try:
-        await call.message.edit_text(f"Natija: **{display_text}**", parse_mode="Markdown", reply_markup=get_calc_keyboard())
+        await call.message.edit_text(f"Natiyjesi: **{display_text}**", parse_mode="Markdown", reply_markup=get_calc_keyboard())
     except Exception:
         pass
         
@@ -65,7 +66,7 @@ async def calc_callback(call: types.CallbackQuery):
 
 # Render uchun portni tinglaydigan soxta veb-server funksiyasi
 async def handle_ping(request):
-    return web.Response(text="Bot ishlamoqda!")
+    return web.Response(text="Bot islep basladi!")
 
 async def main():
     # Render beradigan PORTni olish (standart 10000)
