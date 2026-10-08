@@ -3,12 +3,12 @@ import os
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiohttp import web  # Render uchun veb-server
 BOT_TOKEN="8629111423:AAEwN-upf3PHsOql_-obq_3L4jOeI8gaYhA"
-TOKEN = BOT_TOKEN  # Token serverdagi o'zgaruvchidan olinadi
+TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# Foydalanuvchilarning joriy ifodasini saqlash uchun lug'at
 user_data = {}
 
 def get_calc_keyboard():
@@ -41,7 +41,6 @@ async def calc_callback(call: types.CallbackQuery):
         current_expr = ""
     elif val == "=":
         try:
-            # Hisoblash (faqat xavfsiz belgilar)
             clean_expr = current_expr.replace("×", "*").replace("÷", "/")
             current_expr = str(eval(clean_expr)) if clean_expr else "0"
         except Exception:
@@ -58,9 +57,27 @@ async def calc_callback(call: types.CallbackQuery):
         await call.message.edit_text(f"Natija: **{display_text}**", parse_mode="Markdown", reply_markup=get_calc_keyboard())
     except Exception:
         pass
-    await call.answer()
+        
+    try:
+        await call.answer()
+    except Exception:
+        pass  # Eskirib qolgan so'rovlar uchun xatolik bermaydi
+
+# Render uchun portni tinglaydigan soxta veb-server funksiyasi
+async def handle_ping(request):
+    return web.Response(text="Bot ishlamoqda!")
 
 async def main():
+    # Render beradigan PORTni olish (standart 10000)
+    port = int(os.environ.get("PORT", 10000))
+    app = web.Application()
+    app.router.add_get("/", handle_ping)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+
+    # Botni ishga tushirish
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
